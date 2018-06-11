@@ -1,0 +1,6 @@
+TO DO:
+- SQL Server 2017 - https://www.microsoft.com/pl-pl/sql-server/sql-server-downloads
+- SSMS - https://docs.microsoft.com/en-us/sql/ssms/download-sql-server-management-studio-ssms?view=sql-server-2017
+- GIT - https://git-scm.com/
+- TortoiseGit - https://tortoisegit.org/
+- Baza AdventureWorks - https://www.microsoft.com/en-us/download/details.aspx?id=49502
