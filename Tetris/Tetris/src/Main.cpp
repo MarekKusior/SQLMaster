@@ -1,14 +1,12 @@
 #include <allegro5/allegro.h>
 #include <allegro5/allegro_image.h>
-#include <iostream>
 using namespace std;
 
-const int width = 640;
-const int height = 480;
-
-const int M = 20;
-const int N = 10;
-const float FPS = 1;
+const int width = 800;
+const int height = 600;
+const int M = 30;
+const int N = 15;
+const float FPS = 5;
 
 int field[M][N] = {0};
 
@@ -37,67 +35,70 @@ bool check()
 
 int main()
 {
+    /** Inicjalizacja biblioteki ALLEGRO */
     al_init();
     al_install_keyboard();
     al_init_image_addon();
 
-    //ALLEGRO_KEYBOARD_STATE kayboard;
+    /** Bitmapy */
     ALLEGRO_DISPLAY *display  = al_create_display(width, height);
-    al_set_window_title( display,"Bitmapy");
-    ALLEGRO_BITMAP *tile = al_load_bitmap("images/tiles.png");//Wczytywanie obrazka
+    al_set_window_title( display,"Tetris");
+    ALLEGRO_BITMAP *tile = al_load_bitmap("images/tiles.png");
+    ALLEGRO_BITMAP *background = al_load_bitmap("images/background.png");
 
+
+    /** Timer */
     ALLEGRO_TIMER *timer = al_create_timer(1.0 / FPS);
+    al_start_timer(timer);
 
+    /** EVENT */
+    ALLEGRO_EVENT event;
     ALLEGRO_EVENT_QUEUE *event_queue = al_create_event_queue();
+
     al_register_event_source(event_queue, al_get_display_event_source(display));
     al_register_event_source(event_queue, al_get_timer_event_source(timer));
     al_register_event_source(event_queue, al_get_keyboard_event_source());
-    ALLEGRO_EVENT event;
-
-    al_start_timer(timer);
 
     int dx=0; bool rotate=0; int colorNum=1;
-	float delay=0.3;
 
     bool running = true;
+    bool draw = true;
+
+    a[0].x = 0, a[0].y = 1;
+    a[1].x = 1, a[1].y = 1;
+    a[2].x = 1, a[2].y = 2;
 
     while(running)
     {
-        al_get_next_event(event_queue, &event);
         if(event.type == ALLEGRO_EVENT_DISPLAY_CLOSE) return 0;
 
-        //kolor okna
+        /** Ustawienie koloru okna */
         al_clear_to_color(al_map_rgb(255,255,255));
 
+        /** Oczekiwanie na EVENT - w tym przypadku jakikolwiek */
         al_wait_for_event(event_queue, &event);
 
-        //int n = 3;
-        //if(a[0].x==0)
-        //for(int i=0;i<4;i++)
-        //{
-          //  a[i].x = figures[n][i] % 2;
-            //a[i].y = figures[n][i] / 2;
-        //}
-
-
+        /** Obsluzenie dzialania klawiatury */
         switch(event.keyboard.keycode)
         {
             case ALLEGRO_KEY_LEFT:
-            dx = -1;
+            dx -= 1;
             break;
             case ALLEGRO_KEY_RIGHT:
-            dx = 1;
+            dx += 1;
             break;
             case ALLEGRO_KEY_UP:
             rotate = true;
             break;
         }
 
-        // Poruszanie kszta³tu
+
+
+        /** Poruszanie ksztaltu po bitmapie*/
         for (int i=0;i<4;i++)  { b[i]=a[i]; a[i].x+=dx; }
         if (!check()) for (int i=0;i<4;i++) a[i]=b[i];
 
-        // Obracanie kszta³u
+        /** Obracanie ksztaltu*/
         if (rotate)
           {
             Point p = a[1]; //center of rotation
@@ -111,24 +112,43 @@ int main()
             if (!check()) for (int i=0;i<4;i++) a[i]=b[i];
           }
 
-        // Poruszanie obiektu w dó³
+        dx=0;rotate=0;
 
+
+        if(event.type == ALLEGRO_EVENT_TIMER)
+        {
+
+            switch(event.keyboard.keycode)
+            {
+                case ALLEGRO_KEY_LEFT:
+                dx -= 1;
+                break;
+                case ALLEGRO_KEY_RIGHT:
+                dx += 1;
+                break;
+                case ALLEGRO_KEY_UP:
+                rotate = true;
+                break;
+            }
+            /** tick */
             for (int i=0;i<4;i++) { b[i]=a[i]; a[i].y+=1; }
 
             if (!check())
             {
-             for (int i=0;i<4;i++) field[b[i].y][b[i].x]=colorNum;
+                for (int i=0;i<4;i++) field[b[i].y][b[i].x]=colorNum;
 
-             colorNum=1+rand()%7;
-             int n=rand()%7;
-             for (int i=0;i<4;i++)
-               {
-                a[i].x = figures[n][i] % 2;
-                a[i].y = figures[n][i] / 2;
-               }
+                colorNum=1+rand()%7;
+                int n=rand()%7;
+                for (int i=0;i<4;i++)
+                {
+                    a[i].x = figures[n][i] % 2;
+                    a[i].y = figures[n][i] / 2;
+                }
             }
+        }
 
-        // Sprawdzenie czy kszta³t przektoczy³ wyznaczony obszar
+
+        /** Sprawdzenie lini */
         int k=M-1;
         for (int i=M-1;i>0;i--)
         {
@@ -141,27 +161,30 @@ int main()
             if (count<N) k--;
         }
 
-        dx=0; rotate=0; delay=0.3;
 
-        // Rysuj kszta³t
+        /** Rysowanie ksztaltu */
 
-	for (int i=0;i<M;i++)
-	 for (int j=0;j<N;j++)
-	   {
-            if (field[i][j]==0) continue;
-            al_draw_bitmap_region(tile, field[i][j]*18, 0, 18,18,j*18,i*18,0);
-	   }
 
-	   	for (int i=0;i<4;i++)
-	  {
-		al_draw_bitmap_region(tile,colorNum*18, 0, 18,18,a[i].x*18,a[i].y*18,0);
-	  }
+            for (int i=0;i<M;i++)
+            {
+                for (int j=0;j<N;j++)
+                {
+                    if (field[i][j]==0) continue;
+                    al_draw_bitmap_region(tile, field[i][j]*18, 0, 18,18,j*18,i*18,0);
+                }
 
-        al_flip_display();
-        al_clear_to_color(al_map_rgb(255,255,255));
-        al_rest(0.001);//pauza
-    }
+                for (int i=0;i<4;i++)
+                {
+                    al_draw_bitmap_region(tile,colorNum*18, 0, 18,18,a[i].x*18,a[i].y*18,0);
+                }
+            }
 
+            al_flip_display();
+            al_rest(0.0001);//pauza
+        }
+
+
+    al_destroy_bitmap(tile);
     al_destroy_display(display);
     al_destroy_timer(timer);
 
