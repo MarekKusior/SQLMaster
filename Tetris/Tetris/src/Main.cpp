@@ -5,8 +5,8 @@ using namespace std;
 const int width = 800;
 const int height = 600;
 const int M = 30;
-const int N = 15;
-const float FPS = 5;
+const int N = 10;
+const float FPS = 3;
 
 int field[M][N] = {0};
 
@@ -44,8 +44,7 @@ int main()
     ALLEGRO_DISPLAY *display  = al_create_display(width, height);
     al_set_window_title( display,"Tetris");
     ALLEGRO_BITMAP *tile = al_load_bitmap("images/tiles.png");
-    ALLEGRO_BITMAP *background = al_load_bitmap("images/background.png");
-
+    ALLEGRO_BITMAP *background = al_load_bitmap("images/frame.png");
 
     /** Timer */
     ALLEGRO_TIMER *timer = al_create_timer(1.0 / FPS);
@@ -79,20 +78,21 @@ int main()
         al_wait_for_event(event_queue, &event);
 
         /** Obsluzenie dzialania klawiatury */
-        switch(event.keyboard.keycode)
+        if(event.type == ALLEGRO_EVENT_KEY_DOWN || event.type == ALLEGRO_EVENT_TIMER)
         {
-            case ALLEGRO_KEY_LEFT:
-            dx -= 1;
-            break;
-            case ALLEGRO_KEY_RIGHT:
-            dx += 1;
-            break;
-            case ALLEGRO_KEY_UP:
-            rotate = true;
-            break;
+            switch(event.keyboard.keycode)
+            {
+                case ALLEGRO_KEY_LEFT:
+                dx = -1;
+                break;
+                case ALLEGRO_KEY_RIGHT:
+                dx = 1;
+                break;
+                case ALLEGRO_KEY_UP:
+                rotate = true;
+                break;
+            }
         }
-
-
 
         /** Poruszanie ksztaltu po bitmapie*/
         for (int i=0;i<4;i++)  { b[i]=a[i]; a[i].x+=dx; }
@@ -112,24 +112,6 @@ int main()
             if (!check()) for (int i=0;i<4;i++) a[i]=b[i];
           }
 
-        dx=0;rotate=0;
-
-
-        if(event.type == ALLEGRO_EVENT_TIMER)
-        {
-
-            switch(event.keyboard.keycode)
-            {
-                case ALLEGRO_KEY_LEFT:
-                dx -= 1;
-                break;
-                case ALLEGRO_KEY_RIGHT:
-                dx += 1;
-                break;
-                case ALLEGRO_KEY_UP:
-                rotate = true;
-                break;
-            }
             /** tick */
             for (int i=0;i<4;i++) { b[i]=a[i]; a[i].y+=1; }
 
@@ -145,8 +127,6 @@ int main()
                     a[i].y = figures[n][i] / 2;
                 }
             }
-        }
-
 
         /** Sprawdzenie lini */
         int k=M-1;
@@ -161,6 +141,7 @@ int main()
             if (count<N) k--;
         }
 
+         dx=0;rotate=0;
 
         /** Rysowanie ksztaltu */
 
@@ -179,10 +160,10 @@ int main()
                 }
             }
 
+            //al_draw_bitmap(background,0,0,0);
             al_flip_display();
-            al_rest(0.0001);//pauza
+            al_rest(0.001);//pauza
         }
-
 
     al_destroy_bitmap(tile);
     al_destroy_display(display);
