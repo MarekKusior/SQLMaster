@@ -231,7 +231,7 @@
 1372624732 c:\ania\allegro\include\allegro5\allegro_native_dialog.h
 	"allegro5/allegro.h"
 
-1535582333 source:c:\repo\tetris\tetris\src\main.cpp
+1535662001 source:c:\repo\tetris\tetris\src\main.cpp
 	<allegro5/allegro.h>
 	<allegro5/allegro_image.h>
 

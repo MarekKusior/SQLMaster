@@ -5,9 +5,9 @@ using namespace std;
 const int width = 800;
 const int height = 600;
 const int M = 30;
-const int N = 10;
-const float FPS = 3;
-
+const int N = 20;
+const float FPS = 5;
+const float FPS_Fast = 60;
 int field[M][N] = {0};
 
 struct Point
@@ -48,6 +48,8 @@ int main()
 
     /** Timer */
     ALLEGRO_TIMER *timer = al_create_timer(1.0 / FPS);
+    ALLEGRO_TIMER *timer_fast = al_create_timer(1.0 / FPS_Fast);
+
     al_start_timer(timer);
 
     /** EVENT */
@@ -56,12 +58,12 @@ int main()
 
     al_register_event_source(event_queue, al_get_display_event_source(display));
     al_register_event_source(event_queue, al_get_timer_event_source(timer));
+    al_register_event_source(event_queue, al_get_timer_event_source(timer_fast));
     al_register_event_source(event_queue, al_get_keyboard_event_source());
 
-    int dx=0; bool rotate=0; int colorNum=1;
+    int dx=0; bool rotate=0; int colorNum=1; int speed=1;
 
     bool running = true;
-    bool draw = true;
 
     a[0].x = 0, a[0].y = 1;
     a[1].x = 1, a[1].y = 1;
@@ -78,27 +80,31 @@ int main()
         al_wait_for_event(event_queue, &event);
 
         /** Obsluzenie dzialania klawiatury */
-        if(event.type == ALLEGRO_EVENT_KEY_DOWN || event.type == ALLEGRO_EVENT_TIMER)
+        if(event.type == ALLEGRO_EVENT_KEY_CHAR)
         {
+
             switch(event.keyboard.keycode)
             {
                 case ALLEGRO_KEY_LEFT:
-                dx = -1;
-                break;
+                    dx -= 1;
+                    break;
                 case ALLEGRO_KEY_RIGHT:
-                dx = 1;
-                break;
+                    dx += 1;
+                    break;
                 case ALLEGRO_KEY_UP:
-                rotate = true;
-                break;
+                    rotate = true;
+                    break;
+                case ALLEGRO_KEY_DOWN:
+                    break;
             }
         }
 
-        /** Poruszanie ksztaltu po bitmapie*/
-        for (int i=0;i<4;i++)  { b[i]=a[i]; a[i].x+=dx; }
+        /** Poruszanie ksztaltu po bitmapie */
+        for (int i=0;i<4;i++)
+            { b[i]=a[i]; a[i].x+=dx; }
         if (!check()) for (int i=0;i<4;i++) a[i]=b[i];
 
-        /** Obracanie ksztaltu*/
+        /** Obracanie ksztaltu */
         if (rotate)
           {
             Point p = a[1]; //center of rotation
@@ -112,21 +118,24 @@ int main()
             if (!check()) for (int i=0;i<4;i++) a[i]=b[i];
           }
 
-            /** tick */
-            for (int i=0;i<4;i++) { b[i]=a[i]; a[i].y+=1; }
+        /** tick */
 
+        if(event.type == ALLEGRO_EVENT_TIMER)
+        {
+            for (int i=0;i<4;i++) { b[i]=a[i]; a[i].y+=speed; }
             if (!check())
             {
-                for (int i=0;i<4;i++) field[b[i].y][b[i].x]=colorNum;
+                 for (int i=0;i<4;i++) field[b[i].y][b[i].x]=colorNum;
 
-                colorNum=1+rand()%7;
-                int n=rand()%7;
-                for (int i=0;i<4;i++)
-                {
+                 colorNum=1+rand()%7;
+                 int n=rand()%7;
+                 for (int i=0;i<4;i++)
+                   {
                     a[i].x = figures[n][i] % 2;
                     a[i].y = figures[n][i] / 2;
-                }
+               }
             }
+        }
 
         /** Sprawdzenie lini */
         int k=M-1;
@@ -144,30 +153,26 @@ int main()
          dx=0;rotate=0;
 
         /** Rysowanie ksztaltu */
-
-
-            for (int i=0;i<M;i++)
+        for (int i=0;i<M;i++)
+        {
+            for (int j=0;j<N;j++)
             {
-                for (int j=0;j<N;j++)
-                {
-                    if (field[i][j]==0) continue;
-                    al_draw_bitmap_region(tile, field[i][j]*18, 0, 18,18,j*18,i*18,0);
-                }
-
-                for (int i=0;i<4;i++)
-                {
-                    al_draw_bitmap_region(tile,colorNum*18, 0, 18,18,a[i].x*18,a[i].y*18,0);
-                }
+                if (field[i][j]==0) continue;
+                al_draw_bitmap_region(tile, field[i][j]*18, 0, 18,18,j*18,i*18,0);
             }
 
-            //al_draw_bitmap(background,0,0,0);
+            for (int i=0;i<4;i++)
+            {
+                al_draw_bitmap_region(tile,colorNum*18, 0, 18,18,a[i].x*18,a[i].y*18,0);
+            }
+        }
             al_flip_display();
             al_rest(0.001);//pauza
-        }
-
+    }
     al_destroy_bitmap(tile);
     al_destroy_display(display);
     al_destroy_timer(timer);
+    al_destroy_timer(timer_fast);
 
     return 0;
 }
