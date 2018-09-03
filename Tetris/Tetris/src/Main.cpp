@@ -1,13 +1,13 @@
 #include <allegro5/allegro.h>
 #include <allegro5/allegro_image.h>
+#include <allegro5/allegro_primitives.h>
 using namespace std;
 
-const int width = 800;
+const int width = 600;
 const int height = 600;
 const int M = 30;
 const int N = 20;
 const float FPS = 5;
-const float FPS_Fast = 60;
 int field[M][N] = {0};
 
 struct Point
@@ -39,12 +39,13 @@ int main()
     al_init();
     al_install_keyboard();
     al_init_image_addon();
+    al_init_primitives_addon();
 
     /** Bitmapy */
     ALLEGRO_DISPLAY *display  = al_create_display(width, height);
     al_set_window_title( display,"Tetris");
     ALLEGRO_BITMAP *tile = al_load_bitmap("images/tiles.png");
-    ALLEGRO_BITMAP *background = al_load_bitmap("images/frame.png");
+    ALLEGRO_BITMAP *background = al_load_bitmap("images/frame2.png");
 
     /** Timer */
     ALLEGRO_TIMER *timer = al_create_timer(1.0 / FPS);
@@ -61,16 +62,22 @@ int main()
     al_register_event_source(event_queue, al_get_timer_event_source(timer_fast));
     al_register_event_source(event_queue, al_get_keyboard_event_source());
 
-    int dx=0; bool rotate=0; int colorNum=1; int speed=1;
-
     bool running = true;
 
+    /** Narysowanie pierwszej figury */
     a[0].x = 0, a[0].y = 1;
     a[1].x = 1, a[1].y = 1;
     a[2].x = 1, a[2].y = 2;
 
+    bool rotate=0;
+    int dx=0;
+    int colorNum=1;
+    int speed=1;
+    int start_position = 3;
+
     while(running)
     {
+
         if(event.type == ALLEGRO_EVENT_DISPLAY_CLOSE) return 0;
 
         /** Ustawienie koloru okna */
@@ -82,7 +89,6 @@ int main()
         /** Obsluzenie dzialania klawiatury */
         if(event.type == ALLEGRO_EVENT_KEY_CHAR)
         {
-
             switch(event.keyboard.keycode)
             {
                 case ALLEGRO_KEY_LEFT:
@@ -99,10 +105,9 @@ int main()
             }
         }
 
-
         /** Poruszanie ksztaltu po bitmapie */
         for (int i=0;i<4;i++)
-            { b[i]=a[i]; a[i].x+=dx; }
+            { b[i]=a[i]; a[i].x += dx; }
         if (!check()) for (int i=0;i<4;i++) a[i]=b[i];
 
         /** Obracanie ksztaltu */
@@ -151,7 +156,7 @@ int main()
             if (count<N) k--;
         }
 
-         dx=0;rotate=0;
+        dx=0;rotate=0;
 
         /** Rysowanie ksztaltu */
         for (int i=0;i<M;i++)
@@ -167,6 +172,8 @@ int main()
                 al_draw_bitmap_region(tile,colorNum*18, 0, 18,18,a[i].x*18,a[i].y*18,0);
             }
         }
+            //al_draw_bitmap(background,0,0,0);
+            al_draw_rectangle(0, 0, N*18, M*18,al_map_rgb(100,100,100), 6);
             al_flip_display();
             al_rest(0.001);//pauza
     }
